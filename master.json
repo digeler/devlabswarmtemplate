@@ -1,0 +1,71 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "newVMName": {
+      "type": "string",
+      "defaultValue": "slaveswarm2"
+    },
+    "labName": {
+      "type": "string",
+      "defaultValue": "mine"
+    },
+    "size": {
+      "type": "string",
+      "defaultValue": "Standard_A5"
+    },
+    "userName": {
+      "type": "string",
+      "defaultValue": "dinor"
+    },
+    "sshKeyData": {
+      "type": "string",
+      "defaultValue": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCz7gkqOUUUlCObjgevthzsfFEUGPxm/8+tQYqDXQ/Z0aCOB25cvSHepTWPb0fFJ8fCqp/+9mxJg8tR6XY7nliZ8ioH3j3yBphgzPAkPmoX1fEe05TPm3RQQiQiljZPiKhnxnDI9kCyPI/Fp7cmhklEDFN9aMy/0/3Jx87pIktS0KPC9U/WMrtmNr/0LeKva/0+NgvJkm3mcqAFBH3pBVsnVQrGObp7cHXVXZAas6mjhqsTLjs52T1OQkRtilZsjV9kjvD5qU9tfKRVFBLZGIsVZsCGN4+i3R0UfrCRG6EYqezLZMMf5B5jCugD68kEVPSbsccMVijPDbLWmqIlLX45",
+      "metadata": {
+        "description": "SSH rsa public key file as a string."
+    }
+    }
+  },
+  "variables": {
+    "labSubnetName": "dbsubnet",
+    "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
+    "labVirtualNetworkName": "mysqlvnet",
+    "sshKeyPath": "[concat('/home/',parameters('UserName'),'/.ssh/authorized_keys')]",
+    "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualMachines', parameters('labName'), parameters('newVMName'))]",
+    "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2016-05-15",
+      "type": "Microsoft.DevTestLab/labs/virtualMachines",
+      "name": "[variables('vmName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
+        "notes": "template",
+        "customImageId": "/subscriptions/928f4e7e-2c28-4063-a56e-6f1e6f2bb73c/resourcegroups/minerg166770/providers/microsoft.devtestlab/labs/mine/customimages/template",
+        "size": "[parameters('size')]",
+        "userName": "[parameters('userName')]",        
+        "isAuthenticationWithSshKey": true,
+        "ssh": {
+              "publicKeys": [
+                {
+                  "path": "[variables('sshKeyPath')]",
+                  "keyData": "[parameters('sshKeyData')]"
+                }
+              ]
+        },
+      
+        "labSubnetName": "[variables('labSubnetName')]",
+        "disallowPublicIpAddress": false,
+        "storageType": "Standard"
+      }
+    }
+  ],
+  "outputs": {
+    "labVMId": {
+      "type": "string",
+      "value": "[variables('vmId')]"
+    }
+  }
+}
